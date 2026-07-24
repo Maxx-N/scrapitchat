@@ -1,4 +1,4 @@
-from scraper import fetch_website_links
+from helpers.scraper import fetch_website_links
 
 
 def get_links_system_prompt():

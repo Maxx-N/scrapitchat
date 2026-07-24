@@ -7,8 +7,8 @@ the LLM (as the salesperson) and the user (as the customer or prospect).
 
 from typing import Literal
 
-from chat import chat
-from prompt_maker import get_links_system_prompt, get_links_user_prompt
+from helpers.chat import chat
+from helpers.prompt_maker import get_links_system_prompt, get_links_user_prompt
 
 
 def select_relevant_links(url: str, model_type: Literal["gpt", "claude"]):
