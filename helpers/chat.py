@@ -40,5 +40,5 @@ def chat(
             {"role": "user", "content": user_prompt},
         ],
     )
-    result = response.choices[0].message.content
-    return f"{model_type.upper()} says:\n {result}\n"
+    result = response.choices[0].message.content or ""
+    return result

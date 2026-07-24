@@ -16,7 +16,7 @@ def select_relevant_links(url: str, model_type: Literal["gpt", "claude"]):
     system_prompt = get_links_system_prompt()
     user_prompt = get_links_user_prompt(url)
     result = chat(system_prompt, user_prompt, model_type)
-    links = json.dumps(result)
+    links = json.loads(result)
     return links
 
 

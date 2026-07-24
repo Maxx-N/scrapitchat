@@ -11,10 +11,10 @@ E. g., links to an About page, or a Company page, or Careers/Jobs pages.
 You should respond in JSON as in this example:
 
 {
-    "links": [
-        {"type": "about page", "url": "https://full.url/goes/here/about"},
-        {"type": "careers page", "url": "https://another.full.url/careers"}
-    ]
+  "links": [
+    {"type": "about page", "url": "https://full.url/goes/here/about"},
+    {"type": "careers page", "url": "https://another.full.url/careers"}
+  ]
 }
  
 """
