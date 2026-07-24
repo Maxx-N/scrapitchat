@@ -26,13 +26,11 @@ def fetch_website_contents(url: str):
     return f"{title}\n\n{text}"[:2000]
 
 
-def fetch_website_links(url):
+def fetch_website_links(url: str) -> list[str]:
     """
     Return the links on the webiste at the given url
     """
     response = requests.get(url, headers=headers)
     soup = BeautifulSoup(response.content, "html.parser")
     links = [link.get("href") for link in soup.find_all("a")]
-    return [link for link in links if link]
-
-print(fetch_website_links("https://www.anthropic.com/"))
+    return [str(link) for link in links if link]
