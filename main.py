@@ -5,6 +5,7 @@ brand or person's skill featured on the web page. The conversation is between
 the LLM (as the salesperson) and the user (as the customer or prospect).
 """
 
+import json
 from typing import Literal
 
 from helpers.chat import chat
@@ -15,7 +16,8 @@ def select_relevant_links(url: str, model_type: Literal["gpt", "claude"]):
     system_prompt = get_links_system_prompt()
     user_prompt = get_links_user_prompt(url)
     result = chat(system_prompt, user_prompt, model_type)
-    return result
+    links = json.dumps(result)
+    return links
 
 
 print(select_relevant_links("https://www.anthropic.com/", "claude"))
