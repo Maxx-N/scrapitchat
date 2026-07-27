@@ -8,14 +8,14 @@ the LLM (as the salesperson) and the user (as the customer or prospect).
 import json
 from typing import Literal
 
-from helpers.chat import chat
+from helpers.chat import message_llm
 from helpers.prompt_maker import get_links_system_prompt, get_links_user_prompt
 from helpers.scraper import fetch_website_contents
 
 def select_relevant_links(url: str, model_type: Literal["gpt", "claude", "llama"]):
     system_prompt = get_links_system_prompt()
     user_prompt = get_links_user_prompt(url)
-    result = chat(
+    result = message_llm(
         system_prompt=system_prompt,
         user_prompt=user_prompt,
         model_type=model_type,

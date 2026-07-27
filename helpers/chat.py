@@ -51,7 +51,7 @@ LINKS_JSON_SCHEMA = {
 }
 
 
-def chat(
+def message_llm(
     system_prompt: str,
     user_prompt: str,
     model_type: Literal["gpt", "claude", "llama"] = "gpt",
