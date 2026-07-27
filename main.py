@@ -10,7 +10,7 @@ from typing import Literal
 
 from helpers.chat import chat
 from helpers.prompt_maker import get_links_system_prompt, get_links_user_prompt
-
+from helpers.scraper import fetch_website_contents
 
 def select_relevant_links(url: str, model_type: Literal["gpt", "claude", "llama"]):
     system_prompt = get_links_system_prompt()
@@ -24,5 +24,16 @@ def select_relevant_links(url: str, model_type: Literal["gpt", "claude", "llama"
     links = json.loads(result)
     return links
 
+def fetch_page_and_all_relevant_links(
+    url: str, model_type: Literal["gpt", "claude", "llama"]
+):
+    contents = fetch_website_contents(url)
+    relevant_links = select_relevant_links(url=url, model_type=model_type)
+    result = f"## Landing Page:\n\n{contents}\n\nRelevant Links:"
+    for link in relevant_links["links"]:
+        result += f"\n\n###Link: {link['type']}\n"
+        result += fetch_website_contents(link["url"])
+    return result
 
-print(select_relevant_links("https://www.anthropic.com/", "llama"))
+
+print(fetch_page_and_all_relevant_links("https://www.anthropic.com/", "claude"))

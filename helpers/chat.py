@@ -1,6 +1,7 @@
 import os
 from typing import Literal
 
+from pydantic import BaseModel, ConfigDict
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -32,6 +33,24 @@ def define_model_and_provider(
     return model, provider
 
 
+class Link(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: str
+    url: str
+
+
+class RelevantLinks(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    links: list[Link]
+
+
+LINKS_JSON_SCHEMA = {
+    "name": "relevant_links",
+    "strict": True,
+    "schema": RelevantLinks.model_json_schema(),
+}
+
+
 def chat(
     system_prompt: str,
     user_prompt: str,
@@ -39,13 +58,21 @@ def chat(
     json=False,
 ) -> str:
     model, provider = define_model_and_provider(model_type)
+    if json is True:
+        json_response_format = (
+            {"type": "json_schema", "json_schema": LINKS_JSON_SCHEMA}
+            if model_type == "claude"
+            else {"type": "json_object"}
+        )
+    else:
+        json_response_format = {"type": "text"}
     response = provider.chat.completions.create(
         model=model,
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt},
         ],
-        response_format={"type": "json_object"} if json else {"type": "text"},
+        response_format=json_response_format,
     )
     result = response.choices[0].message.content or ""
     return result
