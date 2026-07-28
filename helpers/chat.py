@@ -90,12 +90,17 @@ def chat(message, history, model_type: Literal["gpt", "claude", "llama"]):
         + [{"role": "user", "content": message}]
     )
     model, provider = define_model_and_provider(model_type=model_type)
-    response = provider.chat.completions.create(model=model, messages=messages)
-    return response.choices[0].message.content
+    stream = provider.chat.completions.create(
+        model=model, messages=messages, stream=True
+    )
+    response = ""
+    for chunk in stream:
+        response += chunk.choices[0].delta.content or ""
+        yield response
 
 
 def chat_with_gradio():
-    dropdown = gr.Dropdown(choices=["gpt", "claude", "llama"], value="gpt", label="Model")
+    dropdown = gr.Dropdown(
+        choices=["gpt", "claude", "llama"], value="gpt", label="Model"
+    )
     gr.ChatInterface(fn=chat, additional_inputs=[dropdown]).launch(inbrowser=True)
-
-chat_with_gradio()

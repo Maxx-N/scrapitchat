@@ -38,4 +38,4 @@ def fetch_page_and_all_relevant_links(
     return result
 
 
-chat_with_gradio(model_type="llama")
+chat_with_gradio()
