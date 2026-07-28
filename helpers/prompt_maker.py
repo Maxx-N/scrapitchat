@@ -1,6 +1,3 @@
-from helpers.scraper import fetch_website_links
-
-
 def get_links_system_prompt():
     return """
 You are provided with a list of links found on a webpage.
@@ -20,7 +17,7 @@ You should respond in JSON as in this example:
 """
 
 
-def get_links_user_prompt(url):
+def get_links_user_prompt(url, links):
     user_prompt = f"""
 Here is the list of links on the website {url}.
 Please decide which of these are relevant web links to navigate to for a salesperson
@@ -32,6 +29,16 @@ Do not include Terms of Service, Privacy, email links.
 Links (some might be relative links):
 
     """
-    links = fetch_website_links(url)
     user_prompt += "\n".join(links)
     return user_prompt
+
+
+def get_sales_representative_system_prompt(website_contents: str):
+    system_promt = f"""You are a sales representative in a conversation with a customer.
+Your job is to answer their questions about a product, service, brand, or a person’s skills, with the goal of selling that item to them.
+To do this, you have access to content from several relevant web pages, which you must always use. 
+Be extremely persuasive and enthusiastic about what you’re selling, presenting the facts in the best possible light.
+Here are the contents of the landing page and other relevant pages to use:\n\n"""
+    system_promt += website_contents
+    system_promt = system_promt[:5_000]
+    return system_promt

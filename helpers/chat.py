@@ -6,7 +6,14 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel, ConfigDict
 
-from helpers.scraper import fetch_website_contents
+from helpers.prompt_maker import get_sales_representative_system_prompt
+from helpers.scraper import (
+    fetch_page_and_all_relevant_links,
+    fetch_website_contents,
+    fetch_website_links,
+    fetch_website_soup,
+    select_relevant_links,
+)
 
 
 load_dotenv(override=True)
@@ -88,14 +95,25 @@ def chat(message, history, model_type: Literal["gpt", "claude", "llama"], state)
         state = {"url_loaded": False, "system_prompt": "You are a helpful assistant"}
     if not state["url_loaded"]:
         try:
-            website_contents = fetch_website_contents(message)
+            soup = fetch_website_soup(message)
         except Exception as e:
             print(e)
             return (
                 f'I couldn\'t fetch that URL: "{message}".\nPlease send a valid website URL (including https://).',
                 state,
             )
-        state = {**state, "url_loaded": True}
+        contents = fetch_website_contents(soup)
+        links = fetch_website_links(soup)
+        relevant_links = select_relevant_links(
+            url=message, links=links, model_type=model_type
+        )
+        relevant_contents = fetch_page_and_all_relevant_links(
+            contents=contents, relevant_links=relevant_links
+        )
+        system_prompt = get_sales_representative_system_prompt(
+            website_contents=relevant_contents
+        )
+        state = {**state, "url_loaded": True, "system_prompt": system_prompt}
         return (
             f"Got it — I've loaded {message}. What would you like to know about it?",
             state,
@@ -107,6 +125,7 @@ def chat(message, history, model_type: Literal["gpt", "claude", "llama"], state)
         + history
         + [{"role": "user", "content": message}]
     )
+    print(messages)
     model, provider = define_model_and_provider(model_type=model_type)
     result = provider.chat.completions.create(model=model, messages=messages)
     return (result.choices[0].message.content, state)
@@ -130,4 +149,5 @@ def chat_with_gradio():
         chatbot=chatbot,
         additional_inputs=[dropdown, state],
         additional_outputs=[state],
+        autofocus=True
     ).launch(inbrowser=True)

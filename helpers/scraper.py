@@ -1,6 +1,11 @@
+import json
+from typing import Literal
+
 from bs4 import BeautifulSoup
 
 import requests
+
+from helpers.prompt_maker import get_links_system_prompt, get_links_user_prompt
 
 
 # Standard headers to fetch a website
@@ -9,13 +14,16 @@ headers = {
 }
 
 
-def fetch_website_contents(url: str):
+def fetch_website_soup(url: str):
+    response = requests.get(url, headers=headers)
+    return BeautifulSoup(response.content, "html.parser")
+
+
+def fetch_website_contents(soup):
     """
     Return the title and contents of the website at the given url;
     truncate to 2,000 characters as a sensible limit
     """
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.content, "html.parser")
     title = soup.title.string if soup.title else "No title found"
     if soup.body:
         for irrelevant in soup.body(["script", "style", "img", "input"]):
@@ -26,11 +34,36 @@ def fetch_website_contents(url: str):
     return f"{title}\n\n{text}"[:2000]
 
 
-def fetch_website_links(url: str) -> list[str]:
+def fetch_website_links(soup) -> list[str]:
     """
     Return the links on the webiste at the given url
     """
-    response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.content, "html.parser")
     links = [link.get("href") for link in soup.find_all("a")]
     return [str(link) for link in links if link]
+
+
+def select_relevant_links(
+    url: str, links: list[str], model_type: Literal["gpt", "claude", "llama"]
+):
+    from helpers.chat import message_llm
+
+    system_prompt = get_links_system_prompt()
+    user_prompt = get_links_user_prompt(url, links)
+    result = message_llm(
+        system_prompt=system_prompt,
+        user_prompt=user_prompt,
+        model_type=model_type,
+        json=True,
+    )
+    links = json.loads(result)
+    return links
+
+
+def fetch_page_and_all_relevant_links(contents: str, relevant_links):
+    result = f"## Landing Page:\n\n{contents}\n\nRelevant Links:"
+    for link in relevant_links["links"]:
+        soup = fetch_website_soup(link["url"])
+        link_contents = fetch_website_contents(soup)
+        result += f"\n\n###Link: {link['type']}\n"
+        result += link_contents
+    return result
