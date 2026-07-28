@@ -22,10 +22,12 @@ def define_model_and_provider(
     model_type: Literal["gpt", "claude", "llama"],
 ) -> tuple[str, OpenAI]:
     if model_type.lower() == "gpt":
-        model = "gpt-5.6-luna"
+        # model = "gpt-5.6-luna"
+        model = "gpt-4.1-mini"
         provider = openai
     elif model_type.lower() == "claude":
-        model = "claude-sonnet-5"
+        # model = "claude-sonnet-5"
+        model = "claude-sonnet-4-5-20250929"
         provider = anthropic
     else:
         model = "llama3.2"
