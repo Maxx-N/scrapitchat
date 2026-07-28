@@ -1,6 +1,5 @@
 import os
 from typing import Literal
-from functools import partial
 
 import gradio as gr
 from dotenv import load_dotenv
@@ -95,5 +94,8 @@ def chat(message, history, model_type: Literal["gpt", "claude", "llama"]):
     return response.choices[0].message.content
 
 
-def chat_with_gradio(model_type: Literal["gpt", "claude", "llama"]):
-    gr.ChatInterface(fn=partial(chat, model_type=model_type)).launch()
+def chat_with_gradio():
+    dropdown = gr.Dropdown(choices=["gpt", "claude", "llama"], value="gpt", label="Model")
+    gr.ChatInterface(fn=chat, additional_inputs=[dropdown]).launch(inbrowser=True)
+
+chat_with_gradio()
