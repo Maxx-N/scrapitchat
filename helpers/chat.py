@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from openai import OpenAI
 from pydantic import BaseModel, ConfigDict
 
+from helpers.scraper import fetch_website_contents
+
 
 load_dotenv(override=True)
 openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -81,26 +83,51 @@ def message_llm(
     return result
 
 
-def chat(message, history, model_type: Literal["gpt", "claude", "llama"]):
-    system_prompt = "You are a helpful assistant."
+def chat(message, history, model_type: Literal["gpt", "claude", "llama"], state):
+    if state is None:
+        state = {"url_loaded": False, "system_prompt": "You are a helpful assistant"}
+    if not state["url_loaded"]:
+        try:
+            website_contents = fetch_website_contents(message)
+        except Exception as e:
+            print(e)
+            return (
+                f'I couldn\'t fetch that URL: "{message}".\nPlease send a valid website URL (including https://).',
+                state,
+            )
+        state = {**state, "url_loaded": True}
+        return (
+            f"Got it — I've loaded {message}. What would you like to know about it?",
+            state,
+        )
+
     history = [{"role": h["role"], "content": h["content"]} for h in history]
     messages = (
-        [{"role": "system", "content": system_prompt}]
+        [{"role": "system", "content": state["system_prompt"]}]
         + history
         + [{"role": "user", "content": message}]
     )
     model, provider = define_model_and_provider(model_type=model_type)
-    stream = provider.chat.completions.create(
-        model=model, messages=messages, stream=True
-    )
-    response = ""
-    for chunk in stream:
-        response += chunk.choices[0].delta.content or ""
-        yield response
+    result = provider.chat.completions.create(model=model, messages=messages)
+    return (result.choices[0].message.content, state)
 
 
 def chat_with_gradio():
     dropdown = gr.Dropdown(
         choices=["gpt", "claude", "llama"], value="gpt", label="Model"
     )
-    gr.ChatInterface(fn=chat, additional_inputs=[dropdown]).launch(inbrowser=True)
+    state = gr.State(None)
+    chatbot = gr.Chatbot(
+        value=[
+            {
+                "role": "assistant",
+                "content": "Hi! Send me a website URL (including https://) and I'll answer questions about it.",
+            }
+        ]
+    )
+    gr.ChatInterface(
+        fn=chat,
+        chatbot=chatbot,
+        additional_inputs=[dropdown, state],
+        additional_outputs=[state],
+    ).launch(inbrowser=True)
