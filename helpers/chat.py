@@ -1,9 +1,11 @@
 import os
 from typing import Literal
+from functools import partial
 
-from pydantic import BaseModel, ConfigDict
+import gradio as gr
 from dotenv import load_dotenv
 from openai import OpenAI
+from pydantic import BaseModel, ConfigDict
 
 
 load_dotenv(override=True)
@@ -78,3 +80,20 @@ def message_llm(
     )
     result = response.choices[0].message.content or ""
     return result
+
+
+def chat(message, history, model_type: Literal["gpt", "claude", "llama"]):
+    system_prompt = "You are a helpful assistant."
+    history = [{"role": h["role"], "content": h["content"]} for h in history]
+    messages = (
+        [{"role": "system", "content": system_prompt}]
+        + history
+        + [{"role": "user", "content": message}]
+    )
+    model, provider = define_model_and_provider(model_type=model_type)
+    response = provider.chat.completions.create(model=model, messages=messages)
+    return response.choices[0].message.content
+
+
+def chat_with_gradio(model_type: Literal["gpt", "claude", "llama"]):
+    gr.ChatInterface(fn=partial(chat, model_type=model_type)).launch()

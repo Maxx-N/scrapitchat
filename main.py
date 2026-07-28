@@ -8,9 +8,10 @@ the LLM (as the salesperson) and the user (as the customer or prospect).
 import json
 from typing import Literal
 
-from helpers.chat import message_llm
+from helpers.chat import chat_with_gradio, message_llm
 from helpers.prompt_maker import get_links_system_prompt, get_links_user_prompt
 from helpers.scraper import fetch_website_contents
+
 
 def select_relevant_links(url: str, model_type: Literal["gpt", "claude", "llama"]):
     system_prompt = get_links_system_prompt()
@@ -24,6 +25,7 @@ def select_relevant_links(url: str, model_type: Literal["gpt", "claude", "llama"
     links = json.loads(result)
     return links
 
+
 def fetch_page_and_all_relevant_links(
     url: str, model_type: Literal["gpt", "claude", "llama"]
 ):
@@ -36,4 +38,4 @@ def fetch_page_and_all_relevant_links(
     return result
 
 
-print(fetch_page_and_all_relevant_links("https://www.anthropic.com/", "claude"))
+chat_with_gradio(model_type="llama")
