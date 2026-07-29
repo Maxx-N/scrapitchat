@@ -124,7 +124,6 @@ def chat(message, history, model_type: Literal["gpt", "claude", "llama"], state)
         + history
         + [{"role": "user", "content": message}]
     )
-    print(messages)
     model, provider = define_model_and_provider(model_type=model_type)
     result = provider.chat.completions.create(model=model, messages=messages)
     return (result.choices[0].message.content, state)

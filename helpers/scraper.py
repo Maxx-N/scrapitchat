@@ -1,8 +1,9 @@
 import json
 from typing import Literal
 
-import requests
+# import requests
 from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 
 from helpers.prompt_maker import get_links_system_prompt, get_links_user_prompt
 
@@ -13,8 +14,15 @@ headers = {
 
 
 def fetch_website_soup(url: str):
-    response = requests.get(url, headers=headers)
-    return BeautifulSoup(response.content, "html.parser")
+    # response = requests.get(url, headers=headers)
+    # return BeautifulSoup(response.content, "html.parser")
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page(user_agent=headers["User-Agent"])
+        page.goto(url, wait_until="networkidle")
+        html = page.content()
+        browser.close()
+    return BeautifulSoup(html, "html.parser")
 
 
 def fetch_website_contents(soup):
