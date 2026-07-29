@@ -97,10 +97,11 @@ def chat(message, history, model_type: Literal["gpt", "claude", "llama"], state)
             soup = fetch_website_soup(message)
         except Exception as e:
             print(e)
-            return (
+            yield (
                 f'I couldn\'t fetch that URL: "{message}".\nPlease send a valid website URL (including https://).',
                 state,
             )
+            return
         contents = fetch_website_contents(soup)
         links = fetch_website_links(soup)
         relevant_links = select_relevant_links(
@@ -113,10 +114,11 @@ def chat(message, history, model_type: Literal["gpt", "claude", "llama"], state)
             website_contents=relevant_contents
         )
         state = {**state, "url_loaded": True, "system_prompt": system_prompt}
-        return (
+        yield (
             f"Got it — I've loaded {message}. What would you like to know about it?",
             state,
         )
+        return
 
     history = [{"role": h["role"], "content": h["content"]} for h in history]
     messages = (
@@ -125,8 +127,11 @@ def chat(message, history, model_type: Literal["gpt", "claude", "llama"], state)
         + [{"role": "user", "content": message}]
     )
     model, provider = define_model_and_provider(model_type=model_type)
-    result = provider.chat.completions.create(model=model, messages=messages)
-    return (result.choices[0].message.content, state)
+    stream = provider.chat.completions.create(model=model, messages=messages, stream=True)
+    result = ""
+    for chunk in stream:
+        result += chunk.choices[0].delta.content or ""
+        yield (result, state)
 
 
 def chat_with_gradio():
