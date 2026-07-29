@@ -1,4 +1,4 @@
-# 🛍️ ScrapItChat
+# 🛍️ SCRAPITCHAT
 
 **Drop in a URL, get a salesperson.** Paste any website into the chat, and an LLM scrapes the page (plus a few relevant sub-pages it picks itself), then role-plays an enthusiastic sales rep who answers your questions about whatever that page is selling — a product, a service, a brand, or a person's skills.
 
