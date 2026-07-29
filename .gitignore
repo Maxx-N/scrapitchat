@@ -2,3 +2,6 @@
 .env
 __pycache__/
 *.pyc
+.claude/
+.browser_profile
+CLAUDE.md
