@@ -7,5 +7,4 @@ the LLM (as the salesperson) and the user (as the customer or prospect).
 
 from helpers.chat import chat_with_gradio
 
-
 chat_with_gradio()

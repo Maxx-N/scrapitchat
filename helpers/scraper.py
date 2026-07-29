@@ -1,12 +1,10 @@
 import json
 from typing import Literal
 
+import requests
 from bs4 import BeautifulSoup
 
-import requests
-
 from helpers.prompt_maker import get_links_system_prompt, get_links_user_prompt
-
 
 # Standard headers to fetch a website
 headers = {
